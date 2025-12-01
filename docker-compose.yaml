@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: bitnami/redis:latest
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
+    # ports:
+    #   - '6379:6379'
+    volumes:
+      - 'redis_data:/bitnami/redis/data'
+
+  db:
+    image: postgres:17.1-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-mini_crm}
+    # ports:
+    #   # Expose port for local development. Remove in production!
+    #   - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    env_file:
+      - ./.env
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  nginx:
+    build: ./nginx
+    depends_on:
+      - crm
+    ports:
+      - 80:80
+
+  crm: # Async API service
+    build: .
+    env_file:
+      - .env
+    depends_on:
+      redis:
+        condition: service_started
+      db:
+        condition: service_healthy
+    # ports:
+    #   - 8000:8000
+
+volumes:
+  static_volume:
+  postgres_data:
+  redis_data:

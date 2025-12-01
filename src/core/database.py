@@ -1,0 +1,42 @@
+from collections.abc import AsyncGenerator
+from typing import Annotated
+
+from fastapi import Depends
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
+from core.config import settings
+
+# Создаем async engine
+engine = create_async_engine(
+    settings.database_url,
+    echo=False,
+    future=True,
+    pool_size=10,
+    max_overflow=20,
+)
+
+# Создаем фабрику сессий
+AsyncSessionLocal = async_sessionmaker(
+    engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+
+async def get_db() -> AsyncGenerator[AsyncSession, None]:
+    """Dependency для получения сессии БД."""
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
+
+
+# Типизированная зависимость для удобного использования
+DBSession = Annotated[AsyncSession, Depends(get_db)]

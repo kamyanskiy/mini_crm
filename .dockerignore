@@ -1,0 +1,11 @@
+.env
+.env.db
+Dockerfile
+.pytest_cache
+__pycache__/
+tests/
+.cursor/
+.venv/
+.pre-commit-config.yaml
+.env
+.env.example
