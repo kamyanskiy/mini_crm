@@ -25,6 +25,16 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - uses: actions/checkout@v4
 
@@ -49,8 +59,7 @@ jobs:
 
       - name: Run type checking
         run: |
-          uv run mypy src
-        continue-on-error: true
+          uv run mypy --ignore-missing-imports --no-strict-optional src
 
       - name: Run tests
         env:
