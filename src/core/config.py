@@ -55,6 +55,26 @@ class Settings(BaseSettings):
         default="Default Organization", description="Default admin organization"
     )
 
+    # CORS settings
+    cors_origins: str = Field(default="*", description="Allowed CORS origins (comma-separated)")
+    cors_methods: str = Field(default="*", description="Allowed CORS methods (comma-separated)")
+    cors_headers: str = Field(default="*", description="Allowed CORS headers (comma-separated)")
+
+    @property
+    def cors_origins_list(self) -> list[str]:
+        """Parse CORS origins from comma-separated string."""
+        return [origin.strip() for origin in self.cors_origins.split(",")]
+
+    @property
+    def cors_methods_list(self) -> list[str]:
+        """Parse CORS methods from comma-separated string."""
+        return [method.strip() for method in self.cors_methods.split(",")]
+
+    @property
+    def cors_headers_list(self) -> list[str]:
+        """Parse CORS headers from comma-separated string."""
+        return [header.strip() for header in self.cors_headers.split(",")]
+
     @property
     def base_dir(self) -> Path:
         return Path(__file__).parent.parent
