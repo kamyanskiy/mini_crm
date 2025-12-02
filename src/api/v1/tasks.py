@@ -1,14 +1,18 @@
 """Task routes."""
 
 from datetime import datetime
+from typing import Annotated
 
-from fastapi import APIRouter, Path, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 
 from api.dependencies.organization import OrgContextDep
+from api.dependencies.pagination import PaginationParams
 from core.database import DBSession
 from models.types import AuthContext
 from schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from services.task_service import TaskService
+
+PaginationDep = Annotated[PaginationParams, Depends()]
 
 router = APIRouter(prefix="/tasks", tags=["tasks"])
 
@@ -21,15 +25,18 @@ router = APIRouter(prefix="/tasks", tags=["tasks"])
 async def list_tasks(
     org_context: OrgContextDep,
     db: DBSession,
+    pagination: PaginationDep,
     deal_id: int | None = Query(None, gt=0, description="Filter by deal ID"),
     only_open: bool | None = Query(None, description="Show only incomplete tasks"),
     due_before: datetime | None = Query(None, description="Filter tasks due before this datetime"),
     due_after: datetime | None = Query(None, description="Filter tasks due after this datetime"),
 ) -> list[TaskResponse]:
     """
-    List tasks in the organization with optional filtering.
+    List tasks in the organization with optional filtering and pagination.
 
     Query parameters:
+    - **page** - Page number (starts from 1)
+    - **page_size** - Number of items per page (max 100)
     - **deal_id** - Filter tasks by specific deal ID
     - **only_open** - If true, show only incomplete tasks (is_done=false)
     - **due_before** - Filter tasks due before this datetime
@@ -52,6 +59,8 @@ async def list_tasks(
         only_open=only_open,
         due_before=due_before,
         due_after=due_after,
+        skip=pagination.skip,
+        limit=pagination.limit,
     )
     return [TaskResponse.model_validate(t) for t in tasks]
 

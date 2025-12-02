@@ -35,6 +35,8 @@ class TaskRepository(BaseRepository[Task]):
         due_before: datetime | None = None,
         due_after: datetime | None = None,
         owner_id: int | None = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> list[Task]:
         """List tasks with filters, scoped to organization."""
         # Join with Deal to filter by organization
@@ -54,6 +56,8 @@ class TaskRepository(BaseRepository[Task]):
 
         if due_after:
             query = query.where(Task.due_date >= due_after)
+
+        query = query.offset(skip).limit(limit)
 
         result = await self.db.execute(query)
         tasks: list[Task] = list(result.scalars().all())

@@ -231,7 +231,7 @@ async def update_deal(
     summary="List activities for a deal",
     description=(
         "Retrieve a chronological timeline of all activities "
-        "(comments, system events, status changes) for a specific deal."
+        "(comments, system events, status changes) for a specific deal with pagination."
     ),
 )
 async def list_activities_for_deal(
@@ -239,9 +239,12 @@ async def list_activities_for_deal(
     deal_id: int = Path(..., gt=0, description="Deal ID"),
     org_context: OrgContextDep,
     db: DBSession,
+    pagination: PaginationDep,
 ) -> list[ActivityResponse]:
     service = ActivityService(db)
-    activities = await service.list_activities_for_deal(deal_id, org_context)
+    activities = await service.list_activities_for_deal(
+        deal_id, org_context, skip=pagination.skip, limit=pagination.limit
+    )
     return [ActivityResponse.model_validate(a) for a in activities]
 
 

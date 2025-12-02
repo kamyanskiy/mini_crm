@@ -112,6 +112,8 @@ class TaskService:
         only_open: bool | None = None,
         due_before: datetime | None = None,
         due_after: datetime | None = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> list[Task]:
         """List tasks with filters."""
         # Members only see their own tasks
@@ -124,5 +126,7 @@ class TaskService:
             due_before=due_before,
             due_after=due_after,
             owner_id=owner_id,
+            skip=skip,
+            limit=limit,
         )
         return tasks

@@ -43,7 +43,7 @@ class ActivityService:
         )
 
     async def list_activities_for_deal(
-        self, deal_id: int, org_context: OrgContext
+        self, deal_id: int, org_context: OrgContext, skip: int = 0, limit: int = 100
     ) -> list[Activity]:
         """List all activities for a deal."""
         # Verify deal exists and belongs to organization
@@ -51,5 +51,5 @@ class ActivityService:
         if not deal:
             raise ResourceNotFound("Deal not found")
 
-        activities: list[Activity] = await self.repo.list_by_deal(deal_id)
+        activities: list[Activity] = await self.repo.list_by_deal(deal_id, skip=skip, limit=limit)
         return activities
