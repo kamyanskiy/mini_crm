@@ -57,8 +57,14 @@ class RedisCache(AbstractCache):
 
     async def get(self, key: str) -> str | None:
         """Get value by key."""
-        value: str | None = await self.redis.get(key)
-        return value
+        value = await self.redis.get(key)
+        if value is None:
+            return None
+        # Decode bytes to str if needed (fakeredis returns bytes)
+        if isinstance(value, bytes):
+            return value.decode("utf-8")
+        # Ensure we always return str (production Redis with decode_responses=True)
+        return str(value)
 
     async def set(self, key: str, value: str, expire: int | None = None) -> None:
         """Set value with optional expiration in seconds."""
@@ -72,10 +78,26 @@ class RedisCache(AbstractCache):
         await self.redis.delete(key)
 
     async def delete_pattern(self, pattern: str) -> None:
-        """Delete all keys matching pattern."""
-        keys = []
-        async for key in self.redis.scan_iter(match=pattern):
-            keys.append(key)
-        if keys:
-            await self.redis.delete(*keys)
-            logger.info(f"Deleted {len(keys)} keys matching pattern: {pattern}")
+        """Delete all keys matching pattern using pipeline for optimal performance."""
+        deleted_count = 0
+        batch_size = 500
+
+        pipeline = self.redis.pipeline()
+        batch_count = 0
+
+        async for key in self.redis.scan_iter(match=pattern, count=1000):
+            pipeline.delete(key)
+            batch_count += 1
+
+            if batch_count >= batch_size:
+                await pipeline.execute()
+                deleted_count += batch_count
+                pipeline = self.redis.pipeline()
+                batch_count = 0
+
+        if batch_count > 0:
+            await pipeline.execute()
+            deleted_count += batch_count
+
+        if deleted_count > 0:
+            logger.info(f"Deleted {deleted_count} keys matching pattern: {pattern}")

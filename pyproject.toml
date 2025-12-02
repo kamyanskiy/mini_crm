@@ -37,6 +37,7 @@ dev = [
     "greenlet>=3.1.1",
     "ruff>=0.14.7",
     "mypy>=1.15.0",
+    "fakeredis>=2.25.2",
 ]
 
 [tool.ruff]
