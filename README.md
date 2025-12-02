@@ -170,6 +170,31 @@ docker-compose ps
 - ReDoc: http://localhost:80/redoc
 - Health check: http://localhost:80/health
 
+### Инициализация администратора
+
+При первом запуске создайте администратора:
+
+```bash
+# Способ 1: Автоматически при старте (добавьте в .env)
+CREATE_ADMIN_ON_STARTUP=true
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=SecurePass123
+ADMIN_NAME=System Administrator
+ADMIN_ORGANIZATION=My Company
+
+# После добавления в .env, перезапустите
+docker-compose restart crm
+
+# Способ 2: Через CLI команду
+docker-compose exec crm uv run crm-admin create-admin \
+  -e admin@example.com \
+  -p SecurePass123 \
+  -n "Admin User" \
+  -o "My Company"
+```
+
+**📖 Подробная документация:** [ADMIN_CLI.md](ADMIN_CLI.md)
+
 ### Проверка работы
 
 ```bash
@@ -223,6 +248,13 @@ POSTGRES_PORT=5432
 REDIS_HOST=localhost    # для локальной разработки
 REDIS_PORT=6379
 SECRET_KEY=dev-secret-key-change-in-production
+
+# Автоматическое создание администратора
+CREATE_ADMIN_ON_STARTUP=true
+ADMIN_EMAIL=admin@localhost
+ADMIN_PASSWORD=dev123456
+ADMIN_NAME=Dev Admin
+ADMIN_ORGANIZATION=Dev Organization
 EOF
 ```
 

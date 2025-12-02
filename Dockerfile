@@ -15,8 +15,13 @@ COPY ./pyproject.toml ./uv.lock ./
 # Install dependencies without dev dependencies
 RUN uv sync --frozen --no-dev --no-cache
 
-# Copy application code
+# Copy application code first (needed for project install)
 COPY ./src ./src
+
+# Install the project to register entry points
+RUN uv pip install --no-deps -e .
+
+# Copy rest of application code
 COPY ./alembic ./alembic
 COPY ./alembic.ini ./
 COPY ./entrypoint.sh ./

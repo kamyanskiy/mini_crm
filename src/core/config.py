@@ -44,6 +44,17 @@ class Settings(BaseSettings):
         default=7, description="Refresh token expiration in days"
     )
 
+    # Initial admin settings
+    create_admin_on_startup: bool = Field(
+        default=False, description="Create admin user on startup if not exists"
+    )
+    admin_email: str = Field(default="admin@example.com", description="Default admin email")
+    admin_password: str = Field(default="changeme123", description="Default admin password")
+    admin_name: str = Field(default="System Administrator", description="Default admin name")
+    admin_organization: str = Field(
+        default="Default Organization", description="Default admin organization"
+    )
+
     @property
     def base_dir(self) -> Path:
         return Path(__file__).parent.parent
