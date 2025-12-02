@@ -54,26 +54,5 @@ async def get_current_user(
     return user
 
 
-async def get_optional_user(
-    authorization: Annotated[str | None, Header()] = None,
-    db: DBSession = DBSession,
-) -> User | None:
-    """
-    Get the current user if authenticated, otherwise return None.
-
-    Args:
-        authorization: Authorization header (Bearer token)
-        db: Database session
-
-    Returns:
-        Current user or None
-    """
-    try:
-        return await get_current_user(authorization, db)
-    except (AuthenticationError, ResourceNotFound):
-        return None
-
-
 # Type alias for dependency injection
 CurrentUser = Annotated[User, Depends(get_current_user)]
-OptionalUser = Annotated[User | None, Depends(get_optional_user)]
